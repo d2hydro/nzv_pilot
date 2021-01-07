@@ -3,5 +3,6 @@ __pycache__/hydrotools.cpython-37.pyc
 .ipynb_checkpoints/modelbouw-checkpoint.ipynb
 dhydamo.log
 beheerregister/*
+dfm_model/*
 
 !.gitignore
