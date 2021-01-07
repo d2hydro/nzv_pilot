@@ -12,4 +12,4 @@ conda activate delft3dfmpy
 ```
 jupyter notebook
 ```
-4. Selecteer modelbouw.ipynb vanuit Jupyter Notebook
+4. Selecteer modelbouw.ipynb vanuit Jupyter Notebook en volg de notebook
