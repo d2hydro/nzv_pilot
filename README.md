@@ -1,13 +1,15 @@
-# HDSR meetpuntconfig
+# TKI-3: Nooderzijlvest Pilot
 
-Met deze stappen bouw je een boezemmodel voor Noorderzijlvest:
+Welkom bij de Noorderzijlvest pilot, waarin we een boezemmodel bouwen voor het beheergebied van waterschap Noorderzijlvest.
+
+Volg deze stappen	:
 1. Zorg voor een D-HyDAMO-omgeving: https://github.com/openearth/delft3dfmpy#installation
-1. Activeer de delft3dfmpy omgeving via de command-prompt
+1. Activeer de delft3dfmpy omgeving via de command-prompt:
 ```
 conda activate delft3dfmpy
 ```
-1. Open jupyter notebook
+3. Open Jupyter Notebook via command-prompt in de geactiveerder omgeving:
 ```
 jupyter notebook
 ```
-1. Selecteer modelbouw.ipynb 
+4. Selecteer modelbouw.ipynb vanuit Jupyter Notebook
