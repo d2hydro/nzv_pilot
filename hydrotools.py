@@ -14,7 +14,6 @@ from shapely.ops import snap
 hydamo = HyDAMO()
 
 ATTRIBUTES = ["crosssections",
-              "parametrised_profiles",
               "bridges",
               "culverts",
               "orifices",
@@ -97,12 +96,13 @@ def to_file(model, hydamo_attribute, length=False, path=Path('.')):
     """Convert hydamo class to shape-file."""
     path = Path(path)
     hydamo_class = getattr(model, hydamo_attribute)
-    data = {col: hydamo_class[col].values for col in hydamo_class.columns}
+    if not hydamo_class.empty:
+        data = {col: hydamo_class[col].values for col in hydamo_class.columns}
 
-    if length:
-        data = data = {**data, 'length': hydamo_class['geometry'].length.values}
+        if length:
+            data = data = {**data, 'length': hydamo_class['geometry'].length.values}
 
-    gpd.GeoDataFrame(data=data).to_file(path.joinpath(f'{hydamo_attribute}.shp'))
+        gpd.GeoDataFrame(data=data).to_file(path.joinpath(f'{hydamo_attribute}.shp'))
 
 
 def snap_ends(gdf, tolerance, digits=None):
@@ -152,15 +152,19 @@ def filter_model(model, attribute_filter={}):
     for key, value in attribute_filter.items():
         drop_branches += list(
             model.branches.loc[
-                model.branches['hydromodel'] != 'Boezemmodel_v4'].index)
+                model.branches[key] != value].index)
 
     drop_branches = list(set(drop_branches))
 
     model.branches = model.branches.loc[~model.branches.index.isin(drop_branches)]
-
     for attribute in ATTRIBUTES:
         hydamo_class = getattr(model, attribute)
-        hydamo_class.loc[~hydamo_class['branch_id'].isin(drop_branches)]
+        if 'branch_id' in hydamo_class.columns:
+            hydamo_class.set_data(hydamo_class.loc[
+                ~hydamo_class['branch_id'].isin(drop_branches)],
+                index_col="code",
+                check_columns=True,
+                check_geotype=True)
 
     return model
 
