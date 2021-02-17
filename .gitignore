@@ -6,3 +6,5 @@ beheerregister/*
 dfm_model/*
 
 !.gitignore
+hydamo_shp/*
+modelbouw.py
