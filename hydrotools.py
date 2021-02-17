@@ -17,6 +17,7 @@ ATTRIBUTES = ["crosssections",
               "parametrised_profiles",
               "bridges",
               "culverts",
+              "orifices",
               "weirs",
               "gemalen",
               "pumps"]
@@ -170,3 +171,5 @@ def export_shapes(model, path=Path('.')):
     path.mkdir(exist_ok=True)
     for attribute in ATTRIBUTES:
         to_file(model, attribute, length=False, path=path)
+
+    to_file(model, "branches", length=False, path=path)
