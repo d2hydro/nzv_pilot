@@ -10,6 +10,7 @@ from pathlib import Path
 
 from shapely.geometry import LineString, Point
 from shapely.ops import snap
+import pickle
 
 hydamo = HyDAMO()
 
@@ -144,15 +145,21 @@ def snap_ends(gdf, tolerance, digits=None):
     return gdf
 
 
-def filter_model(model, attribute_filter={}):
+def filter_model(model, attribute_filter=None, geometry=None):
     """Filter a hydamo model on an attribute filter on branches."""
-    attribute_filter = {key.lower(): value for key, value in attribute_filter.items()}
-
     drop_branches = []
-    for key, value in attribute_filter.items():
-        drop_branches += list(
-            model.branches.loc[
-                model.branches[key] != value].index)
+
+    if attribute_filter:
+        attribute_filter = {
+            key.lower(): value for key, value in attribute_filter.items()}
+        for key, value in attribute_filter.items():
+            drop_branches += list(
+                model.branches.loc[
+                    model.branches[key] != value].index)
+
+    if geometry:
+        drop_branches += list(hydamo.branches.loc[
+            ~hydamo.branches.intersects(geometry)].index)
 
     drop_branches = list(set(drop_branches))
 
@@ -176,4 +183,20 @@ def export_shapes(model, path=Path('.')):
     for attribute in ATTRIBUTES:
         to_file(model, attribute, length=False, path=path)
 
-    to_file(model, "branches", length=False, path=path)
+    to_file(model, "branches", length=True, path=path)
+
+
+def save_model(model, file_name=Path('model.pickle')):
+    """Save the model as a pickle."""
+    file_name = Path(file_name)
+    parent = file_name.parent
+    parent.mkdir(exist_ok=True)
+    with open(file_name, 'wb') as dst:
+        pickle.dump(model, dst, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load_model(file_name):
+    """Load the model from a pickle."""
+    with open(file_name, 'rb') as src:
+        model = pickle.load(src)
+    return model
