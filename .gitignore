@@ -12,3 +12,4 @@ hydamo_model/*
 .ipynb_checkpoints/steenbergerloop-checkpoint.ipynb
 steenbergerloop.py
 steenbergerloop/*
+boezemmodel/*
