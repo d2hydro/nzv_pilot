@@ -158,8 +158,8 @@ def filter_model(model, attribute_filter=None, geometry=None):
                     model.branches[key] != value].index)
 
     if geometry:
-        drop_branches += list(hydamo.branches.loc[
-            ~hydamo.branches.intersects(geometry)].index)
+        drop_branches += list(model.branches.loc[
+            ~model.branches.intersects(geometry)].index)
 
     drop_branches = list(set(drop_branches))
 

@@ -10,3 +10,5 @@ hydamo_shp/*
 modelbouw.py
 hydamo_model/*
 .ipynb_checkpoints/steenbergerloop-checkpoint.ipynb
+steenbergerloop.py
+steenbergerloop/*
