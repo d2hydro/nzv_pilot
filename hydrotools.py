@@ -5,7 +5,9 @@ Created on Mon Sep 21 23:18:13 2020
 """
 
 import geopandas as gpd
+import pandas as pd
 from delft3dfmpy import HyDAMO
+from delft3dfmpy.converters.hydamo_to_dflowfm import roughness_gml
 from pathlib import Path
 
 from shapely.geometry import LineString, Point
@@ -200,3 +202,49 @@ def load_model(file_name):
     with open(file_name, 'rb') as src:
         model = pickle.load(src)
     return model
+
+
+def get_trapeziums(gdf,
+                   index,
+                   bottom_width,
+                   waterlevel_width,
+                   slope_left,
+                   slope_right,
+                   roughnessvalue=15,
+                   roughnesstype=4):
+    """Return trapezium profiles for branches."""
+    gdf = gdf.set_index(index)
+    definitions = {}
+    for idx, row in gdf.iterrows():
+        slope = (row[slope_left] + row[slope_right]) / 2
+        maximumflowwidth = row[waterlevel_width] + (2 * slope)
+        bottomwidth = row[bottom_width]
+        definitions[idx] = dict(slope=slope,
+                                bottomwidth=bottomwidth,
+                                maximumflowwidth=maximumflowwidth,
+                                roughnesstype=roughnesstype,
+                                roughnessvalue=roughnessvalue
+                                )
+    return pd.DataFrame.from_dict(definitions, orient="index")
+
+
+def add_trapeziums(dfmmodel, principe_profielen_gdf):
+    """Add trapezium profiles on branches with missing crosssections."""
+    xs = dfmmodel.crosssections
+    for branch in xs.get_branches_without_crosssection():
+        chainage = dfmmodel.network.branches.loc[branch]['geometry'].length / 2
+        definition = f"PPRO_{branch}"
+        xs.add_crosssection_location(branch,
+                                     chainage,
+                                     definition)
+        prof_def = principe_profielen_gdf.loc[branch]
+        xs.add_trapezium_definition(
+            name=definition,
+            slope=prof_def["slope"],
+            maximumflowwidth=prof_def["maximumflowwidth"],
+            bottomwidth=prof_def["bottomwidth"],
+            closed=False,
+            roughnesstype=roughness_gml[int(prof_def["roughnesstype"])],
+            roughnessvalue=int(prof_def["roughnessvalue"]))
+
+    return dfmmodel
