@@ -231,7 +231,7 @@ def get_trapeziums(gdf,
     return pd.DataFrame.from_dict(definitions, orient="index")
 
 
-def add_trapeziums(dfmmodel, principe_profielen_gdf, closed=True):
+def add_trapeziums(dfmmodel, principe_profielen_gdf, closed=False):
     """Add trapezium profiles on branches with missing crosssections."""
     xs = dfmmodel.crosssections
     for branch in xs.get_branches_without_crosssection():
@@ -241,7 +241,8 @@ def add_trapeziums(dfmmodel, principe_profielen_gdf, closed=True):
         xs.add_crosssection_location(branch,
                                      chainage,
                                      definition,
-                                     shift=prof_def["bottomlevel"])
+                                     shift=prof_def["bottomlevel"]
+                                     )
 
         xs.add_trapezium_definition(
             name=definition,
