@@ -207,6 +207,7 @@ def load_model(file_name):
 def get_trapeziums(gdf,
                    index,
                    bottom_width,
+                   bottom_level,
                    waterlevel_width,
                    slope_left,
                    slope_right,
@@ -219,8 +220,10 @@ def get_trapeziums(gdf,
         slope = (row[slope_left] + row[slope_right]) / 2
         maximumflowwidth = row[waterlevel_width] + (2 * slope)
         bottomwidth = row[bottom_width]
+        bottomlevel = row[bottom_level]
         definitions[idx] = dict(slope=slope,
                                 bottomwidth=bottomwidth,
+                                bottomlevel=bottomlevel,
                                 maximumflowwidth=maximumflowwidth,
                                 roughnesstype=roughnesstype,
                                 roughnessvalue=roughnessvalue
@@ -228,22 +231,24 @@ def get_trapeziums(gdf,
     return pd.DataFrame.from_dict(definitions, orient="index")
 
 
-def add_trapeziums(dfmmodel, principe_profielen_gdf):
+def add_trapeziums(dfmmodel, principe_profielen_gdf, closed=True):
     """Add trapezium profiles on branches with missing crosssections."""
     xs = dfmmodel.crosssections
     for branch in xs.get_branches_without_crosssection():
+        prof_def = principe_profielen_gdf.loc[branch]
         chainage = dfmmodel.network.branches.loc[branch]['geometry'].length / 2
         definition = f"PPRO_{branch}"
         xs.add_crosssection_location(branch,
                                      chainage,
-                                     definition)
-        prof_def = principe_profielen_gdf.loc[branch]
+                                     definition,
+                                     shift=prof_def["bottomlevel"])
+
         xs.add_trapezium_definition(
             name=definition,
             slope=prof_def["slope"],
             maximumflowwidth=prof_def["maximumflowwidth"],
             bottomwidth=prof_def["bottomwidth"],
-            closed=False,
+            closed=closed,
             roughnesstype=roughness_gml[int(prof_def["roughnesstype"])],
             roughnessvalue=int(prof_def["roughnessvalue"]))
 
