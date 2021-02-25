@@ -88,6 +88,7 @@ def read_file(path,
         # filter by gdf_snap
         if gdf_snap:
             snap_gdf = gdf_snap["gdf"]
+            snap_gdf.columns = snap_gdf.columns.str.lower()
             distance = gdf_snap["distance"]
             snap_attribute_filter = {
                 key.lower(): value for key, value in gdf_snap[
@@ -99,8 +100,8 @@ def read_file(path,
                 else:
                     geometry = row["geometry"]
                 gdf_select = snap_gdf.loc[snap_gdf.distance(geometry) <= distance]
-                if not gdf_select.empety:
-                    idx = gdf_select.distance(geometry).argmin()
+                if not gdf_select.empty:
+                    idx = gdf_select.distance(geometry).idxmin()
                     branch = gdf_select.loc[idx]
                     if all(True for key, value in
                            snap_attribute_filter.items()
