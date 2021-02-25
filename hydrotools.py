@@ -8,6 +8,7 @@ import geopandas as gpd
 import pandas as pd
 from delft3dfmpy import HyDAMO
 from delft3dfmpy.converters.hydamo_to_dflowfm import roughness_gml
+from delft3dfmpy.core.geometry import find_nearest_branch
 from pathlib import Path
 
 from shapely.geometry import LineString, Point
@@ -53,7 +54,7 @@ def read_file(path,
               hydamo_attribute,
               index_col=None,
               attribute_filter=None,
-              gdf_snap=None,
+              snap_to_branches=None,
               keep_columns=None,
               column_mapping=None,
               z_coord=False
@@ -73,10 +74,10 @@ def read_file(path,
             column to be used as index (after optional mapping)
         attribute_filter: dict
             dict with lists or strings of the format {'column_name': [values to keep]}
-        gdf_snap: dict
+        snap_to_branches: dict
             snap to a geodataframe with LineStrings. Keep only geometries that snap
             to a LineString with a certain attribute value.
-            Format: {'gdf': GeoDataFrame,
+            Format: {'branches': GeoDataFrame,
                      attribute_filter: {'column_name': [values to keep]}}
         column_mapping: dict
             dict for renaming input colunns to required columns
@@ -86,28 +87,20 @@ def read_file(path,
         gdf.columns = gdf.columns.str.lower()
 
         # filter by gdf_snap
-        if gdf_snap:
-            snap_gdf = gdf_snap["gdf"]
-            snap_gdf.columns = snap_gdf.columns.str.lower()
-            distance = gdf_snap["distance"]
-            snap_attribute_filter = {
-                key.lower(): value for key, value in gdf_snap[
-                    "attribute_filter"].items()}
-            index_keep = []
-            for index, row in gdf.iterrows():
-                if isinstance(row["geometry"], LineString):
-                    geometry = row["geometry"].centroid
-                else:
-                    geometry = row["geometry"]
-                gdf_select = snap_gdf.loc[snap_gdf.distance(geometry) <= distance]
-                if not gdf_select.empty:
-                    idx = gdf_select.distance(geometry).idxmin()
-                    branch = gdf_select.loc[idx]
-                    if all(True for key, value in
-                           snap_attribute_filter.items()
-                           if branch[key] in _make_list[value]):
-                        index_keep += [index]
-            gdf = gdf.loc[index_keep]
+        if snap_to_branches:
+            distance = snap_to_branches["distance"]
+            branches = snap_to_branches["branches"]
+            find_nearest_branch(branches, gdf, maxdist=distance)
+            gdf = gdf.loc[gdf["branch_offset"].notna()]
+            gdf.loc[:, "hydromodel"] = gdf.apply(
+                (lambda x: branches.loc[x["branch_id"]]["hydromodel"]),
+                axis=1)
+
+            if snap_to_branches["attribute_filter"]:
+                snap_attribute_filter = {
+                    key.lower(): value for key, value in snap_to_branches[
+                        "attribute_filter"].items()}
+                gdf = _filter(gdf, snap_attribute_filter)
 
         # filter by attribute
         if attribute_filter:
