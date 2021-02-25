@@ -24,12 +24,24 @@ ATTRIBUTES = ["crosssections",
               "gemalen",
               "pumps"]
 
+def _valid_pprof(prof_def):
+    prof_def["slope"] = max(0.1, prof_def["slope"])
+    prof_def["bottomwidth"] = max(0.5, prof_def["bottomwidth"])
+    prof_def["maximumflowwidth"] = max(prof_def["bottomwidth"],
+                                       prof_def["maximumflowwidth"])
+    
+    return(prof_def)
+
+def _make_list(item):
+    if not isinstance(item, list):
+        item = [item]
+    return item
+
 
 def _filter(gdf, attribute_filter):
     if isinstance(attribute_filter, dict):
         for key, value in attribute_filter.items():
-            if not isinstance(value, list):
-                value = [value]
+            value = _make_list(value)
             gdf = gdf[gdf[key].isin(value)]
 
         return gdf
@@ -41,6 +53,7 @@ def read_file(path,
               hydamo_attribute,
               index_col=None,
               attribute_filter=None,
+              gdf_snap=None,
               keep_columns=None,
               column_mapping=None,
               z_coord=False
@@ -54,26 +67,54 @@ def read_file(path,
         ----------
         path : str or Path
             Path to the feature file
-        hydamo_attribute : HyDAMO property 
+        hydamo_attribute : HyDAMO property
             property to map to (HyDAMO.branches, HyDAMO.crosssections)
         index_col: str
             column to be used as index (after optional mapping)
         attribute_filter: dict
             dict with lists or strings of the format {'column_name': [values to keep]}
+        gdf_snap: dict
+            snap to a geodataframe with LineStrings. Keep only geometries that snap
+            to a LineString with a certain attribute value.
+            Format: {'gdf': GeoDataFrame,
+                     attribute_filter: {'column_name': [values to keep]}}
         column_mapping: dict
             dict for renaming input colunns to required columns
-            
         Result: GeoDataFrame matching the HyDAMO property
         """
         gdf = gpd.read_file(path)
         gdf.columns = gdf.columns.str.lower()
-        
-        #filter by attribute
+
+        # filter by gdf_snap
+        if gdf_snap:
+            snap_gdf = gdf_snap["gdf"]
+            distance = gdf_snap["distance"]
+            snap_attribute_filter = {
+                key.lower(): value for key, value in gdf_snap[
+                    "attribute_filter"].items()}
+            index_keep = []
+            for index, row in gdf.iterrows():
+                if isinstance(row["geometry"], LineString):
+                    geometry = row["geometry"].centroid
+                else:
+                    geometry = row["geometry"]
+                gdf_select = snap_gdf.loc[snap_gdf.distance(geometry) <= distance]
+                if not gdf_select.empety:
+                    idx = gdf_select.distance(geometry).argmin()
+                    branch = gdf_select.loc[idx]
+                    if all(True for key, value in
+                           snap_attribute_filter.items()
+                           if branch[key] in _make_list[value]):
+                        index_keep += [index]
+            gdf = gdf.loc[index_keep]
+
+        # filter by attribute
         if attribute_filter:
-            attribute_filter = {key.lower():value for key,value in attribute_filter.items()}
+            attribute_filter = {
+                key.lower(): value for key, value in attribute_filter.items()}
             gdf = _filter(gdf, attribute_filter)
-            
-        #map to hydamo columns
+
+        # map to hydamo columns
         if column_mapping:
             column_mapping = {key.lower():value.lower() for key,value in column_mapping.items()}
             gdf.rename(columns=column_mapping, inplace=True)
@@ -231,11 +272,11 @@ def get_trapeziums(gdf,
     return pd.DataFrame.from_dict(definitions, orient="index")
 
 
-def add_trapeziums(dfmmodel, principe_profielen_gdf, closed=False):
+def add_trapeziums(dfmmodel, principe_profielen_df, closed=False):
     """Add trapezium profiles on branches with missing crosssections."""
     xs = dfmmodel.crosssections
     for branch in xs.get_branches_without_crosssection():
-        prof_def = principe_profielen_gdf.loc[branch]
+        prof_def = _valid_pprof(dict(principe_profielen_df.loc[branch]))
         chainage = dfmmodel.network.branches.loc[branch]['geometry'].length / 2
         definition = f"PPRO_{branch}"
         xs.add_crosssection_location(branch,
