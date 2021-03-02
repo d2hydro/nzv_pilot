@@ -13,7 +13,8 @@ hydamo_model/*
 steenbergerloop.py
 steenbergerloop/*
 boezemmodel/*
-xlsx/*
+xlsx/~$*.xlsx
+xlsx/principe_profielen.xlsx
 modellen/*
 
 
