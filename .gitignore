@@ -12,6 +12,7 @@ hydamo_model/*
 .ipynb_checkpoints/steenbergerloop-checkpoint.ipynb
 steenbergerloop.py
 steenbergerloop/*
+hydrologische_eenheden/*
 boezemmodel/*
 xlsx/~$*.xlsx
 xlsx/principe_profielen.xlsx
