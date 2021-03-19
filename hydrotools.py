@@ -289,3 +289,15 @@ def add_trapeziums(dfmmodel, principe_profielen_df, closed=False):
             roughnessvalue=int(prof_def["roughnessvalue"]))
 
     return dfmmodel
+
+
+def filter_to_other_object(row, object_gdf, max_distance):
+    """Filter HyDAMO-class-objects within distance to another object-class."""
+    gdf = object_gdf.loc[
+        object_gdf["geometry"].centroid.distance(row["geometry"]) < max_distance
+        ]
+
+    if not gdf.empty:
+        gdf = gdf.loc[gdf["branch_id"] == row["branch_id"]]
+
+    return gdf.empty

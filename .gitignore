@@ -17,9 +17,10 @@ boezemmodel/*
 xlsx/~$*.xlsx
 xlsx/principe_profielen.xlsx
 modellen/*
-
+bathymetrie/*
 
 
 !.gitignore
 config.py
 __pycache__/config.cpython-37.pyc
+
