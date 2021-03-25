@@ -7,6 +7,7 @@ dfm_model/*
 
 
 hydamo_shp/*
+data/*
 modelbouw.py
 hydamo_model/*
 .ipynb_checkpoints/steenbergerloop-checkpoint.ipynb
