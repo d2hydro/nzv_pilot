@@ -7,7 +7,12 @@ dfm_model/*
 
 
 hydamo_shp/*
-data/*
+data/xlsx/uitgesloten_profielen.xlsx
+data/xlsx/principe_profielen.csv
+data/bathymetrie/*
+data/beheerregister/*
+data/hydrologische_eenheden/*
+data/shp/*
 modelbouw.py
 hydamo_model/*
 .ipynb_checkpoints/steenbergerloop-checkpoint.ipynb
@@ -15,15 +20,12 @@ steenbergerloop.py
 steenbergerloop/*
 hydrologische_eenheden/*
 boezemmodel/*
-xlsx/~$*.xlsx
-xlsx/principe_profielen.xlsx
 modellen/*
 bathymetrie/*
 
 
 !.gitignore
 config.py
-__pycache__/config.cpython-37.pyc
 
 *.zip
 *.pyc

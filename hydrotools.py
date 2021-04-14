@@ -86,6 +86,12 @@ def read_file(path,
         gdf = gpd.read_file(path)
         gdf.columns = gdf.columns.str.lower()
 
+        index_col = next(
+                (k.lower() for k, v in column_mapping.items() if v.lower() == "code"),
+                None)
+        if index_col is None:
+            index_col = "code"
+
         # filter by gdf_snap
         if snap_to_branches:
             distance = snap_to_branches["distance"]
@@ -106,27 +112,32 @@ def read_file(path,
         if attribute_filter:
             attribute_filter = {
                 key.lower(): value for key, value in attribute_filter.items()}
-            gdf = _filter(gdf, attribute_filter)
+            gdf = _filter(gdf,
+                          attribute_filter)
 
         # map to hydamo columns
         if column_mapping:
-            column_mapping = {key.lower():value.lower() for key,value in column_mapping.items()}
+            column_mapping = {
+                key.lower(): value.lower() for key, value in column_mapping.items()
+                }
             gdf.rename(columns=column_mapping, inplace=True)
-            
-        # drop all columns not needed 
-        required_columns = getattr(hydamo,hydamo_attribute).required_columns.copy()
+
+        # drop all columns not needed
+        required_columns = getattr(hydamo, hydamo_attribute).required_columns.copy()
 
         if keep_columns:
-           required_columns += [col.lower() for col in keep_columns]
-        
-        if hydamo_attribute =='crosssections':
+            required_columns += [col.lower() for col in keep_columns]
+
+        if hydamo_attribute == 'crosssections':
             if z_coord:
                 required_columns += ['z', 'order']
 
-        drop_cols = [col for col in gdf.columns if not col in required_columns + ['geometry']]
+        drop_cols = [
+            col for col in gdf.columns if col not in required_columns + ['geometry']
+            ]
         if len(drop_cols) > 0:
             gdf = gdf.drop(drop_cols, axis=1)
-        
+
         return gdf
 
 
