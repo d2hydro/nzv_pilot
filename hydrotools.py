@@ -257,8 +257,8 @@ def get_trapeziums(gdf,
                    waterlevel_width,
                    slope_left,
                    slope_right,
-                   roughnessvalue=15,
-                   roughnesstype=4):
+                   roughnesstype,
+                   roughnessvalue):
     """Return trapezium profiles for branches."""
     gdf = gdf.set_index(index)
     definitions = {}
@@ -271,8 +271,8 @@ def get_trapeziums(gdf,
                                 bottomwidth=bottomwidth,
                                 bottomlevel=bottomlevel,
                                 maximumflowwidth=maximumflowwidth,
-                                roughnesstype=roughnesstype,
-                                roughnessvalue=roughnessvalue
+                                roughnesstype=row[roughnesstype],
+                                roughnessvalue=row[roughnessvalue]
                                 )
     return pd.DataFrame.from_dict(definitions, orient="index")
 
@@ -297,7 +297,7 @@ def add_trapeziums(dfmmodel, principe_profielen_df, closed=False):
             bottomwidth=prof_def["bottomwidth"],
             closed=closed,
             roughnesstype=roughness_gml[int(prof_def["roughnesstype"])],
-            roughnessvalue=int(prof_def["roughnessvalue"]))
+            roughnessvalue=float(prof_def["roughnessvalue"]))
 
     return dfmmodel
 
