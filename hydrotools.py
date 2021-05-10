@@ -53,6 +53,7 @@ def _filter(gdf, attribute_filter):
 def read_file(path,
               hydamo_attribute,
               index_col=None,
+              keep_indices=None,
               attribute_filter=None,
               snap_to_branches=None,
               keep_columns=None,
@@ -71,7 +72,9 @@ def read_file(path,
         hydamo_attribute : HyDAMO property
             property to map to (HyDAMO.branches, HyDAMO.crosssections)
         index_col: str
-            column to be used as index (after optional mapping)
+            column to be used to identify rows to keep
+        keep_indices: List[str]
+            values in index_col to keep after filtering & snapping
         attribute_filter: dict
             dict with lists or strings of the format {'column_name': [values to keep]}
         snap_to_branches: dict
@@ -89,8 +92,11 @@ def read_file(path,
         index_col = next(
                 (k.lower() for k, v in column_mapping.items() if v.lower() == "code"),
                 None)
+
         if index_col is None:
             index_col = "code"
+            
+            
 
         # filter by gdf_snap
         if snap_to_branches:
@@ -312,3 +318,48 @@ def filter_to_other_object(row, object_gdf, max_distance):
         gdf = gdf.loc[gdf["branch_id"] == row["branch_id"]]
 
     return gdf.empty
+
+def move_end_nodes(branches_gdf, move_lines_gdf, threshold):
+    #%% add start & end node of linestrings
+    branches_gdf.loc[:, "start_node"] = branches_gdf["geometry"].apply(
+        lambda x: Point(x.coords[0])
+        )
+    branches_gdf.loc[:, "end_node"] = branches_gdf["geometry"].apply(
+        lambda x: Point(x.coords[-1])
+        )
+    
+    #%% add start & end node of linestrings
+    modified_rows = []
+    for _, row in move_lines_gdf.iterrows():
+        from_node = row["geometry"].coords[0]
+        to_node = row["geometry"].coords[-1]
+        from_poly = Point(from_node).buffer(threshold)
+        
+        # add to_node at beginning of LineString when start_node intersects from_node
+        rows_select = branches_gdf[
+            branches_gdf["start_node"].within(from_poly)
+            ].index.to_list()
+        branches_gdf.loc[rows_select, "geometry"] = branches_gdf.loc[
+            rows_select, "geometry"
+            ].apply(lambda x: LineString([to_node] + list(x.coords)))
+        modified_rows += rows_select
+    
+        # extend LineString with to_node when start_node intersects to_node
+        rows_select = branches_gdf[
+            branches_gdf["end_node"].within(from_poly)
+            ].index.to_list()
+        branches_gdf.loc[rows_select, "geometry"] = branches_gdf.loc[
+            rows_select, "geometry"
+            ].apply(lambda x: LineString(list(x.coords) + [to_node]))
+        modified_rows += rows_select
+        
+    #%% remove all lines with a length < treshold between new startand end_nodes
+    branches_gdf.loc[modified_rows, "start_end_dist"] = branches_gdf.loc[
+        modified_rows, "geometry"].apply(lambda x: Point(x.coords[0]).distance(Point(x.coords[-1])))
+    
+    branches_gdf = branches_gdf.loc[
+        (branches_gdf["start_end_dist"] > threshold) | (branches_gdf["start_end_dist"].isna())]
+    
+    branches_gdf.drop(["start_node", "end_node", "start_end_dist"], axis=1, inplace=True)
+    
+    return branches_gdf
