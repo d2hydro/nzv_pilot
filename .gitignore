@@ -8,12 +8,10 @@ dfm_model/*
 
 
 hydamo_shp/*
-data/xlsx/uitgesloten_profielen.xlsx
 data/xlsx/principe_profielen.csv
 data/bathymetrie/*
 data/beheerregister/*
 data/hydrologische_eenheden/*
-data/shp/*
 modelbouw.py
 hydamo_model/*
 .ipynb_checkpoints/steenbergerloop-checkpoint.ipynb
