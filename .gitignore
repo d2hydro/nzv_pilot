@@ -33,3 +33,7 @@ config.py
 
 *.zip
 *.pyc
+afvoer.pickle
+*.pickle
+modeltests_web.ipynb
+.ipynb_checkpoints/modeltests_web-checkpoint.ipynb
