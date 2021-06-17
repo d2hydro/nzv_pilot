@@ -590,7 +590,6 @@ class Sobek(object):
         for netw_cn_raw in netw_cns_raw:
             netw_cn = netw_cn_raw.group(0)
             bound_id = re.search(r"id '(\S*)'", netw_cn).group(1)
-            print(bound_id)
             branch_id = re.search(r"ci '(\S*)'", netw_cn).group(1)
             chainage = float(re.search(r"lc ([+-]?([0-9]*[.])?[0-9]+)", netw_cn).group(1))
             bounds[bound_id].update({"branch": branch_id,
