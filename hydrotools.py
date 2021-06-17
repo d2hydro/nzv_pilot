@@ -686,24 +686,14 @@ def yz_fixer(yz):
     removals = np.all([y[1:-1] == y[2:],y[1:-1] == y[0:-2]], axis=0)
     return np.array([list(i) for idx, i in enumerate(yz[1:-1]) if not removals[idx]])
 
-# %%     
-netw_path = Path(r"c:\SK215003\TKI3_NZV.lit\4\NETWORK.NTW")
-rows = []
-with open(netw_path) as src:
-    for idx, line in enumerate(src):
-        if "*" in line:
-            break
-        elif idx > 0:
-            rows.append(line)
-df = pd.DataFrame([
-    i for i in csv.reader(rows, skipinitialspace=True)
-    ])
-            
-# # %%          
-start_nodes_df = df[df[19] == "SBK_SBK-3B-REACH"][[14,21,22]].copy()
-start_nodes_df.columns = ["node_id","x","y"]
-end_nodes_df = df[df[32] == "SBK_SBK-3B-REACH"][[27,34,35]].copy()
-end_nodes_df.columns = ["node_id","x","y"]
 
-df = end_nodes_df.append(start_nodes_df).drop_duplicates(subset='node_id', keep='first')
-df.set_index("node_id").to_dict(orient="index")
+def write_rr_boundaries(rr_writer):
+    output_dir = Path(rr_writer.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    filepath = Path(rr_writer.output_dir).joinpath('BoundaryConditions.bc')
+    header = {'majorVersion':'1', 'minorVersion':'0', 'fileType':'boundConds'}
+    with open(filepath, 'w') as f:                        
+        rr_writer._write_dict(f, header, 'General','\n')            
+        for _, dct in rr_writer.rrmodel.external_forcings.boundary_nodes.items():                
+            temp = {"name":''+dct['id'], 'function':'constant','quantity':'water_level','unit':'m'} 
+            rr_writer._write_dict(f,temp,'Boundary','    0\n\n')
