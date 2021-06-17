@@ -17,6 +17,7 @@ import csv
 from shapely.geometry import LineString, Point
 from shapely.ops import snap
 import pickle
+
 #%%
 hydamo = HyDAMO()
 
@@ -610,6 +611,29 @@ class Sobek(object):
             bounds[k].update(v)
             
         return bounds
+    
+    def copy_rr(self, case, target_dir, fnm_path):
+        # get file_list
+        target_dir = Path(target_dir)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        files = []
+        with open(fnm_path) as src:
+            for line in src:
+                if not line.replace(" ","")[0] == "*":
+                    if "*" in line:
+                        files.append(line[0:line.find("*")].replace(" ","").replace("'",""))
+                    else:
+                        files.append(line).replace(" ","").replace("'","")
+                        
+        # now get that files copied
+        for file in files:
+            file_path = self.path.joinpath(self.cases[case], file)
+            to_path = Path(target_dir).joinpath(file)
+            if file_path.exists():
+                file_path.copy(to_path)
+                
+        Path(fnm_path).copy(Path(target_dir).joinpath(fnm_path.name))
+        
         
 def test_sbk_profiles():
     sobek = Sobek(r"c:\SK215003\TKI3_NZV.lit")
@@ -697,3 +721,12 @@ def write_rr_boundaries(rr_writer):
         for _, dct in rr_writer.rrmodel.external_forcings.boundary_nodes.items():                
             temp = {"name":''+dct['id'], 'function':'constant','quantity':'water_level','unit':'m'} 
             rr_writer._write_dict(f,temp,'Boundary','    0\n\n')
+
+def generate_meteo_series(mm_day,
+                          start_datetime,
+                          end_datetime,
+                          timedelta=pd.Timedelta(hours=1)):
+    timestamps = int(((end_datetime - start_datetime)/ timedelta) + 1.5)
+    value = mm_day/(pd.Timedelta(days=1)/timedelta)
+    index = [start_datetime + timedelta * i for i in range(0,int(timestamps))]
+    return pd.Series(data=[value]* len(index), index=index)
