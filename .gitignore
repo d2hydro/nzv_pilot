@@ -24,6 +24,7 @@ modellen/*
 bathymetrie/*
 modeltests/*
 move-end-nodes/*
+data/sobek_rr/*
 
 
 !.gitignore
