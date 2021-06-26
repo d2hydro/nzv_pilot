@@ -13,10 +13,12 @@ from pathlib import Path
 import re
 import numpy as np
 import csv
+import shutil
 
 from shapely.geometry import LineString, Point
 from shapely.ops import snap
 import pickle
+
 
 #%%
 hydamo = HyDAMO()
@@ -627,13 +629,14 @@ class Sobek(object):
                         
         # now get that files copied
         for file in files:
-            file_path = self.path.joinpath(self.cases[case], file)
+            file_path = self.path / self.cases[case] / file
             to_path = Path(target_dir).joinpath(file)
             if file_path.exists():
-                file_path.copy(to_path)
-                
-        Path(fnm_path).copy(Path(target_dir).joinpath(fnm_path.name))
+                shutil.copy(str(file_path), str(to_path))
         
+        shutil.copy(str(fnm_path),
+                    str(Path(target_dir).joinpath(fnm_path.name)))
+
         
 def test_sbk_profiles():
     sobek = Sobek(r"c:\SK215003\TKI3_NZV.lit")
@@ -722,6 +725,7 @@ def write_rr_boundaries(rr_writer):
             temp = {"name":''+dct['id'], 'function':'constant','quantity':'water_level','unit':'m'} 
             rr_writer._write_dict(f,temp,'Boundary','    0\n\n')
 
+
 def generate_meteo_series(mm_day,
                           start_datetime,
                           end_datetime,
@@ -730,3 +734,39 @@ def generate_meteo_series(mm_day,
     value = mm_day/(pd.Timedelta(days=1)/timedelta)
     index = [start_datetime + timedelta * i for i in range(0,int(timestamps))]
     return pd.Series(data=[value]* len(index), index=index)
+
+def generate_meteo_series(mm_day,
+                          start_datetime,
+                          end_datetime,
+                          timedelta=pd.Timedelta(hours=1)):
+    timestamps = int(((end_datetime - start_datetime)/ timedelta) + 1.5)
+    value = mm_day/(pd.Timedelta(days=1)/timedelta)
+    index = [start_datetime + timedelta * i for i in range(0,int(timestamps))]
+    return pd.Series(data=[value]* len(index), index=index)
+
+def _is_summer(datetime, summer_to_winter, winter_to_summer):
+
+    if winter_to_summer.month < datetime.month < summer_to_winter.month:
+        is_summer = True
+    elif (datetime.month == winter_to_summer.month) and (datetime.day > winter_to_summer.day):
+        is_summer = True
+    elif (datetime.month == summer_to_winter.month) and (datetime.day < winter_to_summer.day):
+        is_summer = True
+    else:
+        is_summer = False
+
+    return is_summer
+
+def generate_target_series(target_summer,
+                           target_winter,
+                           summer_to_winter=pd.Timestamp(year=1900, month=9, day=15),
+                           winter_to_summer=pd.Timestamp(year=1900, month=3, day=15),
+                           start_datetime=pd.Timestamp(year=1900, month=1, day=1),
+                           end_datetime=pd.Timestamp(year=2100, month=1, day=1),
+                           timedelta=pd.Timedelta(weeks=4)):
+    timestamps = int(((end_datetime - start_datetime)/ timedelta) + 2.5)
+    index = [start_datetime + timedelta * i for i in range(0,int(timestamps))]
+    values = np.full(len(index), target_winter)
+    summer_idx = [_is_summer(datetime, summer_to_winter, winter_to_summer) for datetime in index]
+    values[summer_idx] = target_summer
+    return pd.Series(values, index=index)

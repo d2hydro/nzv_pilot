@@ -24,6 +24,7 @@ modellen/*
 bathymetrie/*
 modeltests/*
 move-end-nodes/*
+data/sobek_rr/*
 
 
 !.gitignore
@@ -35,3 +36,4 @@ afvoer.pickle
 *.pickle
 modeltests_web.ipynb
 .ipynb_checkpoints/modeltests_web-checkpoint.ipynb
+.ipynb_checkpoints/Untitled-checkpoint.ipynb
