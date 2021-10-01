@@ -714,8 +714,9 @@ def yz_fixer(yz):
     return np.array([list(i) for idx, i in enumerate(yz[1:-1]) if not removals[idx]])
 
 
-def write_rr_boundaries(rr_writer):
+def write_rr_boundaries(rr_writer, write_level=False):
     output_dir = Path(rr_writer.output_dir)
+    level = 0
     output_dir.mkdir(parents=True, exist_ok=True)
     filepath = Path(rr_writer.output_dir).joinpath('BoundaryConditions.bc')
     header = {'majorVersion':'1', 'minorVersion':'0', 'fileType':'boundConds'}
@@ -723,7 +724,9 @@ def write_rr_boundaries(rr_writer):
         rr_writer._write_dict(f, header, 'General','\n')            
         for _, dct in rr_writer.rrmodel.external_forcings.boundary_nodes.items():                
             temp = {"name":''+dct['id'], 'function':'constant','quantity':'water_level','unit':'m'} 
-            rr_writer._write_dict(f,temp,'Boundary','    0\n\n')
+            if write_level:
+                level = dct["level"]
+            rr_writer._write_dict(f,temp,'Boundary',f'    {level}\n\n')
 
 
 def generate_meteo_series(mm_day,

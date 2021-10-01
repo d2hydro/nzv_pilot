@@ -9,7 +9,7 @@ import netCDF4 as nc
 import geopandas as gpd
 from shapely.geometry import Point
 
-fn = r".\modellen\boezemmodel\fm\DFM_OUTPUT_boezemmodel\boezemmodel_map.nc"
+fn = r"..\modellen\boezemmodel\fm\DFM_OUTPUT_boezemmodel\boezemmodel_map.nc"
 ds = nc.Dataset(fn)
 
 # inlezen waterhoogtes uit NetCDF

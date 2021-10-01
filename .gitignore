@@ -35,5 +35,5 @@ config.py
 afvoer.pickle
 *.pickle
 modeltests_web.ipynb
-.ipynb_checkpoints/modeltests_web-checkpoint.ipynb
-.ipynb_checkpoints/Untitled-checkpoint.ipynb
+.ipynb_checkpoints/*
+notebooks/.ipynb_checkpoints/*
