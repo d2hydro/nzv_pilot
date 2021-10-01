@@ -5,7 +5,7 @@ Welkom bij de Noorderzijlvest pilot, waarin we een boezemmodel bouwen voor het b
 ## Inhoud
 In deze repository vindt u de volgende scripts:
 
-### Jupyter Notebooks
+### Python Jupyter Notebooks en scripts
 - notebooks\modelbouw.ipynb: het modelbouw notebook waarmee het boezemmodel is gebouwd
 - notebooks\modeltests.ipynb: een notebook waarmee u de laatst optredende waterstand in een simulatie kunt vergelijken met streefpeil
 - notebooks\lateralen_hma.ipynb: hiermee kunt u lateralbestanden genereren voor het FM model met een constante afvoer uitgedrukt in mm/dag
@@ -25,14 +25,14 @@ Het aanmaken van een delft3dfmpy omgeving staat beschreven op de D-HYDAMO reposi
 conda activate delft3dfmpy
 ```
 
-### Bouwen D-HYDRO model
-Voor ht draaien van 
-1. Download de broncode van dit script (Button [Code]) en plaats hem op de harde schijf.
-2. Open Jupyter Notebook via command-prompt in de geactiveerde omgeving:
+### Uitvoeren modelbouw
+Voor het draaien van notebooks\modelbouw.ipynb:
+1. Download de broncode van deze repository en plaats hem op de harde schijf.
+2. Open Jupyter Notebook via command-prompt in de geactiveerde omgeving in de map `notebooks`:
 ```
 jupyter notebook
 ```
-3. Selecteer modelbouw.ipynb vanuit Jupyter Notebook
+3. Selecteer `modelbouw.ipynb` vanuit Jupyter Notebook
 4. Volg nauwkeurig de stappen in het modelbouw notebook.
 
 ## Draaien D-HYDRO model in DIMR
